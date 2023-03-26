@@ -1,3 +1,4 @@
+const { setTimeout } = require('timers/promises')
 const core = require('@actions/core');
 const github = require('@actions/github');
 
@@ -5,10 +6,15 @@ const schema = require('./schema');
 
 async function run() {
   try {
+    await setTimeout(3000);
     const config = getConfig();
+
+    await setTimeout(3000);
     const client = github.getOctokit(config['github-token']);
 
+    await setTimeout(3000);
     const app = new App(config, client);
+    await setTimeout(3000);
     await app.lockThreads();
   } catch (err) {
     core.setFailed(err.message);
@@ -27,10 +33,12 @@ class App {
 
     const threadTypes = type ? [type] : ['issue', 'pr'];
     for (const item of threadTypes) {
+      await setTimeout(3000);
       const threads = await this.lock(item);
 
       core.debug(`Setting output (${item}s)`);
       if (threads.length) {
+        await setTimeout(3000);
         core.setOutput(`${item}s`, JSON.stringify(threads));
 
         if (logOutput) {
@@ -38,6 +46,7 @@ class App {
           core.info(JSON.stringify(threads, null, 2));
         }
       } else {
+        await setTimeout(3000);
         core.setOutput(`${item}s`, '');
       }
     }
@@ -52,6 +61,7 @@ class App {
 
     const threads = [];
 
+    await setTimeout(3000);
     const results = await this.search(type);
     for (const result of results) {
       const issue = {...repo, issue_number: result.number};
@@ -59,6 +69,7 @@ class App {
       if (comment) {
         core.debug(`Commenting (${type}: ${issue.issue_number})`);
         try {
+          await setTimeout(3000);
           await this.client.rest.issues.createComment({
             ...issue,
             body: comment
@@ -71,9 +82,11 @@ class App {
       }
 
       if (addLabels || removeLabels) {
+        await setTimeout(3000);
         const {data: issueData} = await this.client.rest.issues.get({...issue});
 
         if (addLabels) {
+          await setTimeout(3000);
           const currentLabels = issueData.labels.map(label => label.name);
           const newLabels = addLabels.filter(
             label => !currentLabels.includes(label)
@@ -81,6 +94,7 @@ class App {
 
           if (newLabels.length) {
             core.debug(`Labeling (${type}: ${issue.issue_number})`);
+            await setTimeout(3000);
             await this.client.rest.issues.addLabels({
               ...issue,
               labels: newLabels
@@ -89,6 +103,7 @@ class App {
         }
 
         if (removeLabels) {
+          await setTimeout(3000);
           const currentLabels = issueData.labels.map(label => label.name);
           const matchingLabels = currentLabels.filter(label =>
             removeLabels.includes(label)
@@ -96,6 +111,7 @@ class App {
           if (matchingLabels.length) {
             core.debug(`Unlabeling (${type}: ${issue.issue_number})`);
             for (const label of matchingLabels) {
+              await setTimeout(3000);
               await this.client.rest.issues.removeLabel({
                 ...issue,
                 name: label
@@ -118,8 +134,10 @@ class App {
       } else {
         params = issue;
       }
+      await setTimeout(3000);
       await this.client.rest.issues.lock(params);
 
+      await setTimeout(3000);
       threads.push(issue);
     }
 
@@ -172,6 +190,7 @@ class App {
     }
 
     core.debug(`Searching (${type}s)`);
+    await setTimeout(3000);
     const results = (
       await this.client.rest.search.issuesAndPullRequests({
         q: query,
