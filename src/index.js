@@ -37,6 +37,7 @@ class App {
 
     const threadTypes = processOnly || ['issue', 'pr', 'discussion'];
     for (const item of threadTypes) {
+      await new Promise(r => setTimeout(r, 5000));
       const threads = await this.lock(item);
 
       core.debug(`Setting output (${item}s)`);
@@ -63,6 +64,7 @@ class App {
 
     const threads = [];
 
+    await new Promise(r => setTimeout(r, 5000));
     const results = await this.search(threadType);
 
     for (const result of results) {
@@ -76,6 +78,7 @@ class App {
       if (comment) {
         core.debug(`Commenting (${threadType}: ${threadNumber})`);
 
+        await new Promise(r => setTimeout(r, 5000));
         if (threadType === 'discussion') {
           await this.client.graphql(addDiscussionCommentQuery, {
             discussionId,
@@ -97,6 +100,7 @@ class App {
 
       if (addLabels || removeLabels) {
         let currentLabels;
+        await new Promise(r => setTimeout(r, 5000));
         if (threadType === 'discussion') {
           ({
             repository: {
@@ -127,6 +131,7 @@ class App {
             if (threadType === 'discussion') {
               const labels = [];
               for (const labelName of newLabels) {
+                await new Promise(r => setTimeout(r, 5000));
                 let {
                   repository: {label}
                 } = await this.client.graphql(getLabelQuery, {
@@ -136,6 +141,7 @@ class App {
                 });
 
                 if (!label) {
+                  await new Promise(r => setTimeout(r, 5000));
                   ({
                     createLabel: {label}
                   } = await this.client.graphql(createLabelQuery, {
@@ -148,14 +154,17 @@ class App {
                   }));
                 }
 
+                await new Promise(r => setTimeout(r, 5000));
                 labels.push(label);
               }
 
+              await new Promise(r => setTimeout(r, 5000));
               await this.client.graphql(addLabelsToLabelableQuery, {
                 labelableId: discussionId,
                 labelIds: labels.map(label => label.id)
               });
             } else {
+              await new Promise(r => setTimeout(r, 5000));
               await this.client.rest.issues.addLabels({
                 ...thread,
                 labels: newLabels
@@ -173,12 +182,14 @@ class App {
             core.debug(`Unlabeling (${threadType}: ${threadNumber})`);
 
             if (threadType === 'discussion') {
+              await new Promise(r => setTimeout(r, 5000));
               await this.client.graphql(removeLabelsFromLabelableQuery, {
                 labelableId: discussionId,
                 labelIds: matchingLabels.map(label => label.id)
               });
             } else {
               for (const label of matchingLabels) {
+                await new Promise(r => setTimeout(r, 5000));
                 await this.client.rest.issues.removeLabel({
                   ...thread,
                   name: label.name
@@ -192,6 +203,7 @@ class App {
       core.debug(`Locking (${threadType}: ${threadNumber})`);
 
       if (threadType === 'discussion') {
+        await new Promise(r => setTimeout(r, 5000));
         await this.client.graphql(lockLockableQuery, {
           lockableId: discussionId
         });
@@ -202,9 +214,11 @@ class App {
           params.lock_reason = lockReason;
         }
 
+        await new Promise(r => setTimeout(r, 5000));
         await this.client.rest.issues.lock(params);
       }
 
+      await new Promise(r => setTimeout(r, 5000));
       threads.push(thread);
     }
 
@@ -213,6 +227,7 @@ class App {
 
   async search(threadType) {
     const {owner, repo} = github.context.repo;
+    await new Promise(r => setTimeout(r, 5000));
     const updatedTime = this.getUpdatedTimestamp(
       this.config[`${threadType}-inactive-days`]
     );
@@ -238,6 +253,7 @@ class App {
         .join(',')}`;
     }
 
+    await new Promise(r => setTimeout(r, 5000));
     const excludeCreatedQuery = this.getFilterByDateQuery({
       threadType,
       qualifier: 'created'
@@ -246,6 +262,7 @@ class App {
       query += ` ${excludeCreatedQuery}`;
     }
 
+    await new Promise(r => setTimeout(r, 5000));
     const excludeClosedQuery = this.getFilterByDateQuery({
       threadType,
       qualifier: 'closed'
@@ -263,6 +280,7 @@ class App {
     core.debug(`Searching (${threadType}s)`);
 
     let results;
+    await new Promise(r => setTimeout(r, 5000));
     if (threadType === 'discussion') {
       ({
         search: {nodes: results}
