@@ -231,7 +231,7 @@ class App {
     const updatedTime = this.getUpdatedTimestamp(
       this.config[`${threadType}-inactive-days`]
     );
-    let query = `repo:${owner}/${repo} updated:<${updatedTime} is:closed is:unlocked`;
+    let query = `repo:${owner}/${repo} updated:<${updatedTime} state:closed is:unlocked`;
 
     const includeAnyLabels = this.config[`include-any-${threadType}-labels`];
     const includeAllLabels = this.config[`include-all-${threadType}-labels`];
@@ -292,7 +292,8 @@ class App {
         q: query,
         sort: 'updated',
         order: 'desc',
-        per_page: 50
+        per_page: 10,
+        page: 1
       }));
 
       // results may include locked threads

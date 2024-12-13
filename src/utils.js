@@ -19,7 +19,7 @@ function getConfig() {
 }
 
 function getClient(token) {
-  const requestRetries = 3;
+  const requestRetries = 6;
 
   const rateLimitCallback = function (
     retryAfter,
