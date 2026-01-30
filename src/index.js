@@ -1,3 +1,4 @@
+const { setTimeout } = require('timers/promises')
 import core from '@actions/core';
 import github from '@actions/github';
 
@@ -15,10 +16,14 @@ import {
 
 async function run() {
   try {
+    await setTimeout(1250);
     const config = getConfig();
+    await setTimeout(1250);
     const client = getClient(config['github-token']);
 
+    await setTimeout(1250);
     const app = new App(config, client);
+    await setTimeout(1250);
     await app.lockThreads();
   } catch (err) {
     core.setFailed(err.message);
@@ -37,6 +42,7 @@ class App {
 
     const threadTypes = processOnly || ['issue', 'pr', 'discussion'];
     for (const item of threadTypes) {
+      await setTimeout(1250);
       const threads = await this.lock(item);
 
       core.debug(`Setting output (${item}s)`);
@@ -63,6 +69,7 @@ class App {
 
     const threads = [];
 
+    await setTimeout(1250);
     const results = await this.search(threadType);
 
     for (const result of results) {
@@ -76,6 +83,7 @@ class App {
       if (comment) {
         core.debug(`Commenting (${threadType}: ${threadNumber})`);
 
+        await setTimeout(1250);
         if (threadType === 'discussion') {
           await this.client.graphql(addDiscussionCommentQuery, {
             discussionId,
@@ -96,6 +104,7 @@ class App {
       }
 
       if (addLabels || removeLabels) {
+        await setTimeout(1250);
         let currentLabels;
         if (threadType === 'discussion') {
           ({
@@ -127,6 +136,7 @@ class App {
             if (threadType === 'discussion') {
               const labels = [];
               for (const labelName of newLabels) {
+                await setTimeout(1250);
                 let {
                   repository: {label}
                 } = await this.client.graphql(getLabelQuery, {
@@ -136,6 +146,7 @@ class App {
                 });
 
                 if (!label) {
+                  await setTimeout(1250);
                   ({
                     createLabel: {label}
                   } = await this.client.graphql(createLabelQuery, {
@@ -151,11 +162,13 @@ class App {
                 labels.push(label);
               }
 
+              await setTimeout(1250);
               await this.client.graphql(addLabelsToLabelableQuery, {
                 labelableId: discussionId,
                 labelIds: labels.map(label => label.id)
               });
             } else {
+              await setTimeout(1250);
               await this.client.rest.issues.addLabels({
                 ...thread,
                 labels: newLabels
@@ -173,12 +186,14 @@ class App {
             core.debug(`Unlabeling (${threadType}: ${threadNumber})`);
 
             if (threadType === 'discussion') {
+              await setTimeout(1250);
               await this.client.graphql(removeLabelsFromLabelableQuery, {
                 labelableId: discussionId,
                 labelIds: matchingLabels.map(label => label.id)
               });
             } else {
               for (const label of matchingLabels) {
+                await setTimeout(1250);
                 await this.client.rest.issues.removeLabel({
                   ...thread,
                   name: label.name
@@ -192,6 +207,7 @@ class App {
       core.debug(`Locking (${threadType}: ${threadNumber})`);
 
       if (threadType === 'discussion') {
+        await setTimeout(1250);
         await this.client.graphql(lockLockableQuery, {
           lockableId: discussionId
         });
@@ -202,6 +218,7 @@ class App {
           params.lock_reason = lockReason;
         }
 
+        await setTimeout(1250);
         await this.client.rest.issues.lock(params);
       }
 
@@ -262,6 +279,7 @@ class App {
 
     core.debug(`Searching (${threadType}s)`);
 
+    await setTimeout(1250);
     let results;
     if (threadType === 'discussion') {
       ({

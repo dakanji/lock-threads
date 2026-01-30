@@ -20,9 +20,10 @@ function getConfig() {
 
 function getClient(token) {
   const requestRetries = 3;
+  const retryAfterSlow = 75;
 
   const rateLimitCallback = function (
-    retryAfter,
+    retryAfterSlow,
     options,
     octokit,
     retryCount
@@ -32,7 +33,7 @@ function getClient(token) {
     );
 
     if (retryCount < requestRetries) {
-      core.info(`Retrying after ${retryAfter} seconds`);
+      core.info(`Retrying after ${retryAfterSlow} seconds`);
 
       return true;
     }
